@@ -1,5 +1,6 @@
-package com.company;
+package dao;
 
+import entities.Album;
 import lombok.SneakyThrows;
 
 import java.sql.Connection;
@@ -7,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+
 
 public class AlbumDao {
     //region singleton
@@ -135,5 +137,80 @@ public class AlbumDao {
         statement.close();
 
         return albums;
+    }
+
+    @SneakyThrows
+    public Integer getMaxAlbumId() {
+        Connection connection = getConnection();
+
+        //language=TSQL
+        String query = "select top 1 AlbumId from Album order by AlbumId desc ";
+        PreparedStatement statement = connection.prepareStatement(query);
+
+        ResultSet result = statement.executeQuery();
+
+        Integer value = null;
+        if (result.next())
+            value = result.getInt(1);
+
+        result.close();
+        statement.getConnection().close();
+        statement.close();
+
+        return value;
+    }
+
+    @SneakyThrows
+    public boolean insert(Album album){
+        Connection connection = getConnection();
+
+        //language=TSQL
+        String query = "insert into Album values (?, ?)";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setString(1, album.getTitle());
+        statement.setInt(2, album.getArtistId());
+
+        int rowCount = statement.executeUpdate();
+
+        statement.getConnection().close();
+        statement.close();
+
+        return rowCount == 1;
+    }
+
+    @SneakyThrows
+    public boolean update(Album album){
+        Connection connection = getConnection();
+
+        //language=TSQL
+        String query = "update Album set Title = ?, ArtistId = ? where AlbumId = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setString(1, album.getTitle());
+        statement.setInt(2, album.getArtistId());
+        statement.setInt(3, album.getAlbumId());
+
+        int rowCount = statement.executeUpdate();
+
+        statement.getConnection().close();
+        statement.close();
+
+        return rowCount == 1;
+    }
+
+    @SneakyThrows
+    public boolean deleteByKey(int key){
+        Connection connection = getConnection();
+
+        //language=TSQL
+        String query = "delete Album where AlbumId = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setInt(1, key);
+
+        int rowCount = statement.executeUpdate();
+
+        statement.getConnection().close();
+        statement.close();
+
+        return rowCount == 1;
     }
 }
