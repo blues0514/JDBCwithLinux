@@ -1,5 +1,6 @@
 package dao;
 
+
 import entities.Track;
 import lombok.SneakyThrows;
 
@@ -42,19 +43,18 @@ public class TrackDao {
     @SneakyThrows
     private Connection getConnection() {
         String connString =
-                "jdbc:sqlserver://192.168.1.33;database=Chinook;user=sa;password=3512";
+                "jdbc:sqlserver://192.168.1.5;database=Chinook;user=sa;password=3512";
         return DriverManager.getConnection(connString);
     }
-    //endregion
-
 
     @SneakyThrows
-    public int getCount(){
+    private int getInt(String query, ParameterSetter parameterSetter){
         Connection connection = getConnection();
 
-        //language=TSQL
-        String query = "select count(*) from Track";
         PreparedStatement statement = connection.prepareStatement(query);
+
+        if (parameterSetter != null)
+            parameterSetter.setValue(statement);
 
         ResultSet result = statement.executeQuery();
 
@@ -71,13 +71,13 @@ public class TrackDao {
     }
 
     @SneakyThrows
-    public Track getByKey(int key){
+    private Track getOne(String query, ParameterSetter parameterSetter){
         Connection connection = getConnection();
 
-        //language=TSQL
-        String query = "select * from Track where TrackId = ?";
         PreparedStatement statement = connection.prepareStatement(query);
-        statement.setInt(1, key);
+
+        if (parameterSetter != null)
+            parameterSetter.setValue(statement);
 
         ResultSet result = statement.executeQuery();
 
@@ -95,13 +95,12 @@ public class TrackDao {
     }
 
     @SneakyThrows
-    public ArrayList<Track> getByAlbumId(int albumId) {
+    private ArrayList<Track> getMany(String query, ParameterSetter parameterSetter) {
         Connection connection = getConnection();
 
-        //language=TSQL
-        String query = "select * from Track where AlbumId = ?";
         PreparedStatement statement = connection.prepareStatement(query);
-        statement.setInt(1, albumId);
+        if (parameterSetter != null)
+            parameterSetter.setValue(statement);
 
         ResultSet result = statement.executeQuery();
 
@@ -116,133 +115,138 @@ public class TrackDao {
         statement.close();
 
         return tracks;
+    }
+
+    @SneakyThrows
+    private boolean execute(String query, ParameterSetter parameterSetter){
+        Connection connection = getConnection();
+
+        PreparedStatement statement = connection.prepareStatement(query);
+        if (parameterSetter != null)
+            parameterSetter.setValue(statement);
+
+        int rowCount = statement.executeUpdate();
+
+        statement.getConnection().close();
+        statement.close();
+
+        return rowCount == 1;
+    }
+
+    //endregion
+
+    @SneakyThrows
+    public int getCount() {
+        //language=TSQL
+        String query = "select count(*) from Track";
+
+        return getInt(query, null);
+    }
+
+    @SneakyThrows
+    public Track getByKey(int key){
+        //language=TSQL
+        String query = "select * from Track where TrackId = ?";
+
+        return getOne(query, new ParameterSetter() {
+            @SneakyThrows
+            @Override
+            public void setValue(PreparedStatement statement) {
+                statement.setInt(1, key);
+            }
+        });
+    }
+
+    @SneakyThrows
+    public ArrayList<Track> getByAlbumId(int albumId) {
+        //language=TSQL
+        String query = "select * from Track where AlbumId = ?";
+        return getMany(query, new ParameterSetter() {
+            @SneakyThrows
+            @Override
+            public void setValue(PreparedStatement statement) {
+                statement.setInt(1, albumId);
+            }
+        });
     }
 
     @SneakyThrows
     public ArrayList<Track> getByGenreId(int genreId) {
-        Connection connection = getConnection();
-
         //language=TSQL
         String query = "select * from Track where GenreId = ?";
-        PreparedStatement statement = connection.prepareStatement(query);
-        statement.setInt(1, genreId);
 
-        ResultSet result = statement.executeQuery();
-
-        ArrayList<Track> tracks = new ArrayList<>();
-        while (result.next()){
-            Track track = readTrack(result);
-            tracks.add(track);
-        }
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return tracks;
+        return getMany(query, new ParameterSetter() {
+            @SneakyThrows
+            @Override
+            public void setValue(PreparedStatement statement) {
+                statement.setInt(1, genreId);
+            }
+        });
     }
 
     @SneakyThrows
     public ArrayList<Track> getAll() {
-        Connection connection = getConnection();
-
         //language=TSQL
         String query = "select * from Track";
-        PreparedStatement statement = connection.prepareStatement(query);
 
-        ResultSet result = statement.executeQuery();
-
-        ArrayList<Track> tracks = new ArrayList<>();
-        while (result.next()){
-            Track track = readTrack(result);
-            tracks.add(track);
-        }
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return tracks;
+        return getMany(query, null);
     }
 
     @SneakyThrows
-    public Integer getMaxTrackId() {
-        Connection connection = getConnection();
-
+    public int getMaxTrackId() {
         //language=TSQL
         String query = "select top 1 TrackId from Track order by TrackId desc ";
-        PreparedStatement statement = connection.prepareStatement(query);
 
-        ResultSet result = statement.executeQuery();
-
-        Integer value = null;
-        if (result.next())
-            value = result.getInt(1);
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return value;
+        return getInt(query, null);
     }
 
     @SneakyThrows
     public boolean insert(Track track){
-        Connection connection = getConnection();
-
         //language=TSQL
         String query = "insert into Track values (?, ?, ?, ?)";
-        PreparedStatement statement = connection.prepareStatement(query);
-        statement.setString(1, track.getName());
-        statement.setInt(2, track.getAlbumId());
-        statement.setInt(3, track.getGenreId());
-        statement.setDouble(4, track.getUnitPrice());
 
-
-        int rowCount = statement.executeUpdate();
-
-        statement.getConnection().close();
-        statement.close();
-
-        return rowCount == 1;
+        return execute(query, new ParameterSetter() {
+            @SneakyThrows
+            @Override
+            public void setValue(PreparedStatement statement) {
+                statement.setString(1, track.getName());
+                statement.setInt(2, track.getAlbumId());
+                statement.setInt(3, track.getGenreId());
+                statement.setDouble(4, track.getUnitPrice());
+            }
+        });
     }
 
     @SneakyThrows
     public boolean update(Track track){
-        Connection connection = getConnection();
-
         //language=TSQL
         String query = "update Track set Name = ?, AlbumId = ?, GenreId = ?, UnitPrice = ? where TrackId = ?";
-        PreparedStatement statement = connection.prepareStatement(query);
-        statement.setString(1, track.getName());
-        statement.setInt(2, track.getAlbumId());
-        statement.setInt(3, track.getGenreId());
-        statement.setDouble(4, track.getUnitPrice());
-        statement.setInt(5,track.getTrackId());
 
-        int rowCount = statement.executeUpdate();
-
-        statement.getConnection().close();
-        statement.close();
-
-        return rowCount == 1;
+        return execute(query, new ParameterSetter() {
+            @SneakyThrows
+            @Override
+            public void setValue(PreparedStatement statement) {
+                statement.setString(1, track.getName());
+                statement.setInt(2, track.getAlbumId());
+                statement.setInt(3, track.getGenreId());
+                statement.setDouble(4, track.getUnitPrice());
+                statement.setInt(5,track.getTrackId());
+            }
+        });
     }
 
     @SneakyThrows
     public boolean deleteByKey(int key){
-        Connection connection = getConnection();
-
         //language=TSQL
         String query = "delete Track where TrackId = ?";
-        PreparedStatement statement = connection.prepareStatement(query);
-        statement.setInt(1, key);
 
-        int rowCount = statement.executeUpdate();
-
-        statement.getConnection().close();
-        statement.close();
-
-        return rowCount == 1;
+        return execute(query, new ParameterSetter() {
+            @SneakyThrows
+            @Override
+            public void setValue(PreparedStatement statement) {
+                statement.setInt(1, key);
+            }
+        });
     }
 
 }
