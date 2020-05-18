@@ -1,17 +1,13 @@
 package dao;
 
-
 import entities.Track;
 import lombok.SneakyThrows;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-public class TrackDao {
-
+public class TrackDao extends EntityDao<Track>{
     //region singleton
     private TrackDao() {
     }
@@ -26,9 +22,9 @@ public class TrackDao {
     }
     //endregion
 
-    //region helper methods
     @SneakyThrows
-    private Track readTrack(ResultSet result) {
+    @Override
+    protected Track readEntity(ResultSet result) {
         Track track = new Track();
 
         track.setTrackId(result.getInt(1));
@@ -40,107 +36,16 @@ public class TrackDao {
         return track;
     }
 
-    @SneakyThrows
-    private Connection getConnection() {
-        String connString =
-                "jdbc:sqlserver://192.168.1.5;database=Chinook;user=sa;password=3512";
-        return DriverManager.getConnection(connString);
-    }
-
-    @SneakyThrows
-    private int getInt(String query, ParameterSetter parameterSetter){
-        Connection connection = getConnection();
-
-        PreparedStatement statement = connection.prepareStatement(query);
-
-        if (parameterSetter != null)
-            parameterSetter.setValue(statement);
-
-        ResultSet result = statement.executeQuery();
-
-        int count = 0;
-        while (result.next()){
-            count = result.getInt(1);
-        }
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return count;
-    }
-
-    @SneakyThrows
-    private Track getOne(String query, ParameterSetter parameterSetter){
-        Connection connection = getConnection();
-
-        PreparedStatement statement = connection.prepareStatement(query);
-
-        if (parameterSetter != null)
-            parameterSetter.setValue(statement);
-
-        ResultSet result = statement.executeQuery();
-
-        ArrayList<Track> tracks = new ArrayList<>();
-        while (result.next()){
-            Track track = readTrack(result);
-            tracks.add(track);
-        }
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return tracks.size() == 0 ? null : tracks.get(0);
-    }
-
-    @SneakyThrows
-    private ArrayList<Track> getMany(String query, ParameterSetter parameterSetter) {
-        Connection connection = getConnection();
-
-        PreparedStatement statement = connection.prepareStatement(query);
-        if (parameterSetter != null)
-            parameterSetter.setValue(statement);
-
-        ResultSet result = statement.executeQuery();
-
-        ArrayList<Track> tracks = new ArrayList<>();
-        while (result.next()){
-            Track track = readTrack(result);
-            tracks.add(track);
-        }
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return tracks;
-    }
-
-    @SneakyThrows
-    private boolean execute(String query, ParameterSetter parameterSetter){
-        Connection connection = getConnection();
-
-        PreparedStatement statement = connection.prepareStatement(query);
-        if (parameterSetter != null)
-            parameterSetter.setValue(statement);
-
-        int rowCount = statement.executeUpdate();
-
-        statement.getConnection().close();
-        statement.close();
-
-        return rowCount == 1;
-    }
-
-    //endregion
-
-    @SneakyThrows
-    public int getCount() {
+    @Override
+    protected String getCountQuery() {
         //language=TSQL
-        String query = "select count(*) from Track";
+        return "select count(*) from Track";
+    }
 
-        return getInt(query, null);
+    @Override
+    protected String getAllQuery() {
+        //language=TSQL
+        return "select * from Track";
     }
 
     @SneakyThrows
@@ -182,14 +87,6 @@ public class TrackDao {
                 statement.setInt(1, genreId);
             }
         });
-    }
-
-    @SneakyThrows
-    public ArrayList<Track> getAll() {
-        //language=TSQL
-        String query = "select * from Track";
-
-        return getMany(query, null);
     }
 
     @SneakyThrows

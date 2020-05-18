@@ -3,14 +3,10 @@ package dao;
 import entities.Artist;
 import lombok.SneakyThrows;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
 
-public class ArtistDao {
-
+public class ArtistDao extends EntityDao<Artist>{
     //region singleton
     private ArtistDao() {
     }
@@ -25,9 +21,9 @@ public class ArtistDao {
     }
     //endregion
 
-    //region helper method
     @SneakyThrows
-    private Artist readArtist(ResultSet result) {
+    @Override
+    protected Artist readEntity(ResultSet result) {
         Artist artist = new Artist();
 
         artist.setArtistId(result.getInt(1));
@@ -36,105 +32,16 @@ public class ArtistDao {
         return artist;
     }
 
-    @SneakyThrows
-    private Connection getConnection() {
-        String connString =
-                "jdbc:sqlserver://192.168.1.5;database=Chinook;user=sa;password=3512";
-        return DriverManager.getConnection(connString);
-    }
-
-    @SneakyThrows
-    private int getInt(String query, ParameterSetter parameterSetter){
-        Connection connection = getConnection();
-
-        PreparedStatement statement = connection.prepareStatement(query);
-
-        if (parameterSetter != null)
-            parameterSetter.setValue(statement);
-
-        ResultSet result = statement.executeQuery();
-
-        int count = 0;
-        while (result.next()){
-            count = result.getInt(1);
-        }
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return count;
-    }
-
-    @SneakyThrows
-    private Artist getOne(String query, ParameterSetter parameterSetter){
-        Connection connection = getConnection();
-
-        PreparedStatement statement = connection.prepareStatement(query);
-
-        if (parameterSetter != null)
-            parameterSetter.setValue(statement);
-
-        ResultSet result = statement.executeQuery();
-
-        ArrayList<Artist> artists = new ArrayList<>();
-        while (result.next()){
-            Artist artist = readArtist(result);
-            artists.add(artist);
-        }
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return artists.size() == 0 ? null : artists.get(0);
-    }
-
-    @SneakyThrows
-    private ArrayList<Artist> getMany(String query, ParameterSetter parameterSetter) {
-        Connection connection = getConnection();
-
-        PreparedStatement statement = connection.prepareStatement(query);
-        if (parameterSetter != null)
-            parameterSetter.setValue(statement);
-
-        ResultSet result = statement.executeQuery();
-
-        ArrayList<Artist> artists = new ArrayList<>();
-        while (result.next()){
-            Artist artist = readArtist(result);
-            artists.add(artist);
-        }
-
-        result.close();
-        statement.getConnection().close();
-        statement.close();
-
-        return artists;
-    }
-
-    @SneakyThrows
-    private boolean execute(String query, ParameterSetter parameterSetter){
-        Connection connection = getConnection();
-
-        PreparedStatement statement = connection.prepareStatement(query);
-        if (parameterSetter != null)
-            parameterSetter.setValue(statement);
-
-        int rowCount = statement.executeUpdate();
-
-        statement.getConnection().close();
-        statement.close();
-
-        return rowCount == 1;
-    }
-    //endregion
-    @SneakyThrows
-    public int getCount(){
+    @Override
+    protected String getCountQuery() {
         //language=TSQL
-        String query = "select count(*) from Artist";
+        return "select count(*) from Artist";
+    }
 
-        return getInt(query,null);
+    @Override
+    protected String getAllQuery() {
+        //language=TSQL
+        return "select * from Artist";
     }
 
     @SneakyThrows
@@ -149,14 +56,6 @@ public class ArtistDao {
                 statement.setInt(1,key);
             }
         });
-    }
-
-    @SneakyThrows
-    public ArrayList<Artist> getAll() {
-        //language=TSQL
-        String query = "select * from Artist";
-
-        return getMany(query, null);
     }
 
     @SneakyThrows

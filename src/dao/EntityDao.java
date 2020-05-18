@@ -16,12 +16,14 @@ public abstract class EntityDao<E> {
                 "jdbc:sqlserver://192.168.1.5;database=Chinook;user=sa;password=3512";
         return DriverManager.getConnection(connString);
     }
+
     //region abstract methods
     protected abstract E readEntity(ResultSet result);
 
     protected abstract String getCountQuery();
-    //endregion
 
+    protected abstract String getAllQuery();
+    //endregion
 
     @SneakyThrows
     protected final E getOne(String query, ParameterSetter parameterSetter){
@@ -102,6 +104,17 @@ public abstract class EntityDao<E> {
     }
 
     @SneakyThrows
+    public final ArrayList<E> getAll() {
+        //language=TSQL
+        String query = getAllQuery();
+
+        return getMany(query, null);
+    }
+
+    public abstract boolean insert(E entity);
+
+    public abstract boolean update(E entity);
+    @SneakyThrows
     protected final boolean execute(String query, ParameterSetter parameterSetter){
         Connection connection = getConnection();
 
@@ -116,6 +129,5 @@ public abstract class EntityDao<E> {
 
         return rowCount == 1;
     }
-
 
 }

@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-
 public class AlbumDao extends EntityDao<Album>{
     //region singleton
     private AlbumDao() {
@@ -24,7 +23,6 @@ public class AlbumDao extends EntityDao<Album>{
 
     //endregion
 
-    //region helper methods
     @SneakyThrows
     @Override
     protected Album readEntity(ResultSet result) {
@@ -41,6 +39,12 @@ public class AlbumDao extends EntityDao<Album>{
     protected String getCountQuery() {
         //language=TSQL
         return "select count(*) from Album";
+    }
+
+    @Override
+    protected String getAllQuery() {
+        //language=TSQL
+        return "select * from Album";
     }
 
     @SneakyThrows
@@ -70,14 +74,6 @@ public class AlbumDao extends EntityDao<Album>{
                 statement.setInt(1, artistId);
             }
         });
-    }
-
-    @SneakyThrows
-    public ArrayList<Album> getAll() {
-        //language=TSQL
-        String query = "select * from Album";
-
-        return getMany(query, null);
     }
 
     @SneakyThrows
@@ -132,6 +128,5 @@ public class AlbumDao extends EntityDao<Album>{
             }
         });
     }
-
 
 }
