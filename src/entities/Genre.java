@@ -4,12 +4,12 @@ import entities.base.Entity;
 import lombok.Data;
 
 @Data
-public class Artist extends Entity {
-    private int artistId;
+public class Genre extends Entity {
+    private int genreId;
     private String name;
 
     @Override
     public String getKeyText() {
-        return Integer.toString(artistId);
+        return Integer.toString(genreId);
     }
 }

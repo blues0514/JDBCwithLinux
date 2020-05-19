@@ -1,11 +1,12 @@
 package dao.base;
 
 import dao.ParameterSetter;
+import entities.base.Entity;
 import lombok.SneakyThrows;
 
 import java.sql.PreparedStatement;
 
-public abstract class IntStringEntityDao<E> extends DoubleKeyEntityDao<E, Integer, String>{
+public abstract class IntStringEntityDao<E extends Entity> extends DoubleKeyEntityDao<E, Integer, String>{
     @SneakyThrows
     public final E getByKey(int key, String key2) {
         String query = getByKeyQuery();

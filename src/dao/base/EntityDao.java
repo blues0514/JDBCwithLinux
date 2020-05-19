@@ -1,6 +1,7 @@
 package dao.base;
 
 import dao.ParameterSetter;
+import entities.base.Entity;
 import lombok.SneakyThrows;
 
 import java.sql.Connection;
@@ -9,7 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-public abstract class EntityDao<E> {
+public abstract class EntityDao<E extends Entity> {
     @SneakyThrows
     protected final Connection getConnection() {
         String connString =
@@ -23,10 +24,14 @@ public abstract class EntityDao<E> {
     protected abstract String getCountQuery();
 
     protected abstract String getAllQuery();
+
+    protected abstract boolean insert(E entity);
+
+    protected abstract boolean update(E entity);
     //endregion
 
     @SneakyThrows
-    protected final E getOne(String query, ParameterSetter parameterSetter){
+    protected final E getOne(String query, ParameterSetter parameterSetter) {
         Connection connection = getConnection();
 
         PreparedStatement statement = connection.prepareStatement(query);
@@ -37,7 +42,7 @@ public abstract class EntityDao<E> {
         ResultSet result = statement.executeQuery();
 
         ArrayList<E> entities = new ArrayList<>();
-        while (result.next()){
+        while (result.next()) {
             E entity = readEntity(result);
             entities.add(entity);
         }
@@ -60,7 +65,7 @@ public abstract class EntityDao<E> {
         ResultSet result = statement.executeQuery();
 
         ArrayList<E> entities = new ArrayList<>();
-        while (result.next()){
+        while (result.next()) {
             E entity = readEntity(result);
             entities.add(entity);
         }
@@ -73,7 +78,7 @@ public abstract class EntityDao<E> {
     }
 
     @SneakyThrows
-    protected final int getInt(String query, ParameterSetter parameterSetter){
+    protected final int getInt(String query, ParameterSetter parameterSetter) {
         Connection connection = getConnection();
 
         PreparedStatement statement = connection.prepareStatement(query);
@@ -84,7 +89,7 @@ public abstract class EntityDao<E> {
         ResultSet result = statement.executeQuery();
 
         int count = 0;
-        while (result.next()){
+        while (result.next()) {
             count = result.getInt(1);
         }
 
@@ -96,7 +101,7 @@ public abstract class EntityDao<E> {
     }
 
     @SneakyThrows
-    public final int getCount(){
+    public final int getCount() {
         //language=TSQL
         String query = getCountQuery();
 
@@ -111,11 +116,8 @@ public abstract class EntityDao<E> {
         return getMany(query, null);
     }
 
-    public abstract boolean insert(E entity);
-
-    public abstract boolean update(E entity);
     @SneakyThrows
-    protected final boolean execute(String query, ParameterSetter parameterSetter){
+    protected final boolean execute(String query, ParameterSetter parameterSetter) {
         Connection connection = getConnection();
 
         PreparedStatement statement = connection.prepareStatement(query);
@@ -128,6 +130,16 @@ public abstract class EntityDao<E> {
         statement.close();
 
         return rowCount == 1;
+    }
+
+    public String toBigString() {
+        ArrayList<E> entites = getAll();
+        StringBuilder builder = new StringBuilder();
+        for (E entity : entites) {
+            builder.append(entity.getKeyText() + "\n");
+        }
+        
+        return builder.toString();
     }
 
 }
