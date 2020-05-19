@@ -2,10 +2,13 @@ package main;
 
 import dao.AlbumDao;
 import dao.ArtistDao;
+import dao.PlaylistTrackDao;
 import dao.TrackDao;
 import entities.Album;
 import entities.Artist;
+import entities.PlaylistTrack;
 import entities.Track;
+import exceptions.WrongUpdateException;
 import lombok.SneakyThrows;
 
 
@@ -39,6 +42,17 @@ public class Main {
         System.out.println(inserted);
         var maxTrackId = TrackDao.getInstance().getMaxTrackId();
         System.out.println(maxTrackId);
+
+        PlaylistTrack playlistTrack = new PlaylistTrack();
+        playlistTrack.setTrackId(1);
+        playlistTrack.setPlaylistId(1);
+
+        try{
+            PlaylistTrackDao.getInstance().update(playlistTrack);
+        } catch (WrongUpdateException e){
+            System.out.printf("Track Id is %d at %s", e.getTrackId(), e.getAt());
+            e.printStackTrace();
+        }
     }
 
 

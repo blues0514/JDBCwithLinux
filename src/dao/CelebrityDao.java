@@ -1,12 +1,13 @@
 package dao;
 
+import dao.base.StringEntityDao;
 import entities.Celebrity;
 import lombok.SneakyThrows;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public class CelebrityDao extends EntityDao<Celebrity> {
+public class CelebrityDao extends StringEntityDao<Celebrity> {
     //region singleton
     private CelebrityDao() {
     }
@@ -21,17 +22,6 @@ public class CelebrityDao extends EntityDao<Celebrity> {
     }
     //endregion
 
-    @SneakyThrows
-    @Override
-    protected Celebrity readEntity(ResultSet result) {
-        Celebrity celebrity = new Celebrity();
-
-        celebrity.setName(result.getString(1));
-        celebrity.setScore(result.getBigDecimal(2));
-
-        return celebrity;
-    }
-
     @Override
     protected String getCountQuery() {
         //language=TSQL
@@ -44,18 +34,27 @@ public class CelebrityDao extends EntityDao<Celebrity> {
         return "select * from Celebrity";
     }
 
-    @SneakyThrows
-    public Celebrity getByKey(String key){
+    @Override
+    protected String getByKeyQuery() {
         //language=TSQL
-        String query = "select * from Celebrity where Name = ?";
+        return "select * from Celebrity where Name = ?";
+    }
 
-        return getOne(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setString(1, key);
-            }
-        });
+    @Override
+    protected String deleteByKeyQuery() {
+        //language=TSQL
+        return "delete Celebrity where Name = ?";
+    }
+
+    @SneakyThrows
+    @Override
+    protected Celebrity readEntity(ResultSet result) {
+        Celebrity celebrity = new Celebrity();
+
+        celebrity.setName(result.getString(1));
+        celebrity.setScore(result.getBigDecimal(2));
+
+        return celebrity;
     }
 
     @Override
@@ -84,20 +83,6 @@ public class CelebrityDao extends EntityDao<Celebrity> {
             public void setValue(PreparedStatement statement) {
                 statement.setBigDecimal(1, celebrity.getScore());
                 statement.setString(2, celebrity.getName());
-            }
-        });
-    }
-
-    @SneakyThrows
-    public boolean deleteByKey(String key){
-        //language=TSQL
-        String query = "delete Celebrity where Name = ?";
-
-        return execute(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setString(1, key);
             }
         });
     }

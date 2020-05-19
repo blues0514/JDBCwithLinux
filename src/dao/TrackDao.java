@@ -1,5 +1,6 @@
 package dao;
 
+import dao.base.IntEntityDao;
 import entities.Track;
 import lombok.SneakyThrows;
 
@@ -7,7 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-public class TrackDao extends EntityDao<Track>{
+public class TrackDao extends IntEntityDao<Track> {
     //region singleton
     private TrackDao() {
     }
@@ -48,18 +49,16 @@ public class TrackDao extends EntityDao<Track>{
         return "select * from Track";
     }
 
-    @SneakyThrows
-    public Track getByKey(int key){
+    @Override
+    protected String getByKeyQuery() {
         //language=TSQL
-        String query = "select * from Track where TrackId = ?";
+        return "select * from Track where TrackId = ?";
+    }
 
-        return getOne(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setInt(1, key);
-            }
-        });
+    @Override
+    protected String deleteByKeyQuery() {
+        //language=TSQL
+        return "delete Track where TrackId = ?";
     }
 
     @SneakyThrows
@@ -128,20 +127,6 @@ public class TrackDao extends EntityDao<Track>{
                 statement.setInt(3, track.getGenreId());
                 statement.setDouble(4, track.getUnitPrice());
                 statement.setInt(5,track.getTrackId());
-            }
-        });
-    }
-
-    @SneakyThrows
-    public boolean deleteByKey(int key){
-        //language=TSQL
-        String query = "delete Track where TrackId = ?";
-
-        return execute(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setInt(1, key);
             }
         });
     }

@@ -1,13 +1,17 @@
 package dao;
 
+
+import dao.base.IntIntEntityDao;
 import entities.PlaylistTrack;
+import exceptions.WrongUpdateException;
 import lombok.SneakyThrows;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-public class PlaylistTrackDao extends EntityDao<PlaylistTrack>{
+public class PlaylistTrackDao extends IntIntEntityDao<PlaylistTrack> {
     //region singleton
     private PlaylistTrackDao() {
     }
@@ -45,19 +49,16 @@ public class PlaylistTrackDao extends EntityDao<PlaylistTrack>{
         return "select * from PlaylistTrack";
     }
 
-    @SneakyThrows
-    public PlaylistTrack getByKey(int key, int key2) {
+    @Override
+    protected String getByKeyQuery() {
         //language=TSQL
-        String query = "select * from PlaylistTrack where PlaylistId = ? and TrackId = ?";
+        return "select * from PlaylistTrack where PlaylistId = ? and TrackId = ?";
+    }
 
-        return getOne(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setInt(1, key);
-                statement.setInt(2, key2);
-            }
-        });
+    @Override
+    protected String deleteByKeyQuery() {
+        //language=TSQL
+        return "delete PlaylistTrack where PlaylistId = ? and TrackId = ?";
     }
 
     @SneakyThrows
@@ -106,17 +107,9 @@ public class PlaylistTrackDao extends EntityDao<PlaylistTrack>{
     }
 
     @SneakyThrows
-    public boolean deleteByKey(int key, int key2) {
-        //language=TSQL
-        String query = "delete PlaylistTrack where PlaylistId = ? and TrackId = ?";
-
-        return execute(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setInt(1, key);
-                statement.setInt(2, key2);
-            }
-        });
+    @Override
+    public boolean update(PlaylistTrack entity) {
+        throw new WrongUpdateException(entity.getTrackId(), LocalDateTime.now());
     }
+
 }

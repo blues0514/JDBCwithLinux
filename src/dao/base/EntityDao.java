@@ -1,6 +1,6 @@
-package dao;
+package dao.base;
 
-import entities.Album;
+import dao.ParameterSetter;
 import lombok.SneakyThrows;
 
 import java.sql.Connection;

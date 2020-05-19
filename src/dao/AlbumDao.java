@@ -1,5 +1,6 @@
 package dao;
 
+import dao.base.IntEntityDao;
 import entities.Album;
 import lombok.SneakyThrows;
 
@@ -7,7 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-public class AlbumDao extends EntityDao<Album>{
+public class AlbumDao extends IntEntityDao<Album> {
     //region singleton
     private AlbumDao() {
     }
@@ -47,18 +48,16 @@ public class AlbumDao extends EntityDao<Album>{
         return "select * from Album";
     }
 
-    @SneakyThrows
-    public Album getByKey(int key){
+    @Override
+    protected String getByKeyQuery() {
         //language=TSQL
-        String query = "select * from Album where AlbumId = ?";
+        return "select * from Album where AlbumId = ?";
+    }
 
-        return getOne(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setInt(1, key);
-            }
-        });
+    @Override
+    protected String deleteByKeyQuery() {
+        //language=TSQL
+        return "delete Album where AlbumId = ?";
     }
 
     @SneakyThrows
@@ -114,19 +113,4 @@ public class AlbumDao extends EntityDao<Album>{
             }
         });
     }
-
-    @SneakyThrows
-    public boolean deleteByKey(int key){
-        //language=TSQL
-        String query = "delete Album where AlbumId = ?";
-
-        return execute(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setInt(1, key);
-            }
-        });
-    }
-
 }

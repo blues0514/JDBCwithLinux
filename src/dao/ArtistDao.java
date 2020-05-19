@@ -1,12 +1,13 @@
 package dao;
 
+import dao.base.IntEntityDao;
 import entities.Artist;
 import lombok.SneakyThrows;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public class ArtistDao extends EntityDao<Artist>{
+public class ArtistDao extends IntEntityDao<Artist> {
     //region singleton
     private ArtistDao() {
     }
@@ -44,29 +45,27 @@ public class ArtistDao extends EntityDao<Artist>{
         return "select * from Artist";
     }
 
-    @SneakyThrows
-    public Artist getByKey(int key){
+    @Override
+    protected String getByKeyQuery() {
         //language=TSQL
-        String query = "select * from Artist where ArtistId = ?";
+        return "select * from Artist where ArtistId = ?";
+    }
 
-        return getOne(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setInt(1,key);
-            }
-        });
+    @Override
+    protected String deleteByKeyQuery() {
+        //language=TSQL
+        return "delete Artist where ArtistId = ?";
     }
 
     @SneakyThrows
     public int getMaxArtistId() {
         //language=TSQL
         String query = "select top 1 ArtistId from Artist order by ArtistId desc ";
-        return getInt(query,null);
+        return getInt(query, null);
     }
 
     @SneakyThrows
-    public boolean insert(Artist artist){
+    public boolean insert(Artist artist) {
         //language=TSQL
         String query = "insert into Artist values (?)";
 
@@ -80,7 +79,7 @@ public class ArtistDao extends EntityDao<Artist>{
     }
 
     @SneakyThrows
-    public boolean update(Artist artist){
+    public boolean update(Artist artist) {
         //language=TSQL
         String query = "update Artist set Name = ? where ArtistId = ?";
         return execute(query, new ParameterSetter() {
@@ -92,19 +91,4 @@ public class ArtistDao extends EntityDao<Artist>{
             }
         });
     }
-
-    @SneakyThrows
-    public boolean deleteByKey(int key){
-        //language=TSQL
-        String query = "delete Artist where ArtistId = ?";
-
-        return execute(query, new ParameterSetter() {
-            @SneakyThrows
-            @Override
-            public void setValue(PreparedStatement statement) {
-                statement.setInt(1, key);
-            }
-        });
-    }
-
 }
